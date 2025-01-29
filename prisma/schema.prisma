@@ -1,3 +1,207 @@
+// Assessment Enums
+enum AssessmentType {
+  DIAGNOSTIC
+  FORMATIVE
+  SUMMATIVE
+  PERFORMANCE_BASED
+  ADAPTIVE
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum LearningDomain {
+  COGNITIVE
+  AFFECTIVE
+  PSYCHOMOTOR
+  METACOGNITIVE
+}
+
+// Assessment Item Model
+model AssessmentItem {
+  id                          String              @id @default(cuid())
+  assessmentId                String
+  assessment                  Assessment          @relation(fields: [assessmentId], references: [id])
+  
+  // Question Details
+  questionText                String
+  type                        AssessmentType
+  difficultyLevel             DifficultyLevel
+  learningDomain              LearningDomain
+  
+  // Metadata
+  subject                     String
+  topic                       String
+  learningObjective           String
+  
+  // Scoring
+  maxScore                    Float
+  scoringRubric               Json
+  
+  // AI and Adaptive Parameters
+  aiGeneratedDistractors      String[]
+  adaptiveParameters          Json?
+  
+  // Multimedia Support
+  multimedia                  Json?
+  
+  // Student Responses and Performance
+  studentResponses            StudentAssessmentResponse[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Assessment Model
+model Assessment {
+  id                          String              @id @default(cuid())
+  
+  // Basic Details
+  title                       String
+  description                 String?
+  
+  // Configuration
+  type                        AssessmentType
+  subject                     String
+  learningObjectives          String[]
+  
+  // Temporal and Access Control
+  startTime                   DateTime?
+  endTime                     DateTime?
+  duration                    Int?
+  
+  // Adaptive and Personalization
+  adaptiveMode                Boolean             @default(false)
+  personalizationLevel        Float               @default(0.5)
+  
+  // Assessment Items
+  assessmentItems             AssessmentItem[]
+  
+  // Scoring and Evaluation
+  scoringMethod               String
+  passingThreshold            Float
+  
+  // Metadata
+  createdBy                   String
+  tags                        String[]
+  
+  // Student Results
+  studentResults              StudentAssessmentResult[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Student Assessment Response Model
+model StudentAssessmentResponse {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  assessmentItemId            String
+  assessmentItem              AssessmentItem      @relation(fields: [assessmentItemId], references: [id])
+  
+  // Response Details
+  responseText                String?
+  selectedOption              String?
+  score                       Float?
+  
+  // Performance Metadata
+  timeTaken                   Int?
+  confidenceLevel             Float?
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Student Assessment Result Model
+model StudentAssessmentResult {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  assessmentId                String
+  assessment                  Assessment          @relation(fields: [assessmentId], references: [id])
+  
+  // Performance Metrics
+  totalScore                  Float
+  percentageScore             Float
+  performanceLevel            String
+  
+  // Adaptive and Personalized Insights
+  personalizedFeedback        String?
+  recommendedLearningPath     Json?
+  
+  // Performance Analysis
+  strengthAreas               String[]
+  improvementAreas            String[]
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Update Student Model
+model Student {
+  id                          String       @id
+  username                    String       @unique
+  name                        String
+  surname                     String
+  email                       String?      @unique
+  phone                       String?      @unique
+  address                     String
+  img                         String?
+  bloodType                   String
+  sex                         UserSex
+  createdAt                   DateTime     @default(now())
+  parentId                    String
+  parent                      Parent       @relation(fields: [parentId], references: [id])
+  classId                     Int
+  class                       Class        @relation(fields: [classId], references: [id])
+  gradeId                     Int
+  grade                       Grade        @relation(fields: [gradeId], references: [id])
+  attendances                 Attendance[]
+  results                     Result[]
+  birthday                    DateTime
+  academicInterventionPlans   AcademicInterventionPlan[]
+  scholarshipEvaluations      ScholarshipEvaluation?
+  learningPathways            LearningPathway[]
+  learningInterventions        LearningIntervention[]
+  learningProfile             StudentLearningProfile?
+  studentInteractions         StudentInteraction[]
+  learningRecommendations     LearningRecommendation[]
+  performancePredictions      PerformancePrediction?
+  personalizedLearningProfile PersonalizedLearningProfile?
+  learningGoalAnalyses        LearningGoalAnalysis[]
+  performanceMetrics          PerformanceMetric[]
+  studentRiskAssessments      StudentRiskAssessment[]
+  learningInterventionsNew    LearningIntervention[]
+  learningInterventionLogs    LearningInterventionLog[]
+  supportTickets              SupportTicket[]
+  earlyWarningTriggers        EarlyWarningTrigger[]
+  learningProfile             LearningProfile?
+  recommendationHistory       RecommendationTracking[]
+  equityProfile               EquityProfile?
+  interventionPlans           InterventionPlan[]
+  learningInterventionLogs    LearningInterventionLog[]
+  riskPredictions             RiskPrediction[]
+  interventionStrategies      InterventionStrategy[]
+  mlSupportModels             MLSupportModel[]
+  studentGrowthProfile        StudentGrowthProfile?
+  studentGrowthRecords        StudentGrowthRecord[]
+  researchProjects            ResearchProject[]
+  assessmentResponses         StudentAssessmentResponse[]
+  assessmentResults           StudentAssessmentResult[]
+  learningPaths               LearningPath[]
+  studentResourceProgress     StudentResourceProgress[]
+  courseEnrollments           StudentCourseEnrollment[]
+  studentAssessments          StudentAssessment[]
+  apprenticeships             Apprenticeship[]
+  scholarships                Scholarship[]
+  consentProfile              UserConsentProfile?
+}
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,29 +214,6 @@ datasource db {
 model Admin {
   id       String @id
   username String @unique
-}
-
-model Student {
-  id          String       @id
-  username    String       @unique
-  name        String
-  surname     String
-  email       String?      @unique
-  phone       String?      @unique
-  address     String
-  img         String?
-  bloodType   String
-  sex         UserSex
-  createdAt   DateTime     @default(now())
-  parentId    String
-  parent      Parent       @relation(fields: [parentId], references: [id])
-  classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
-  gradeId     Int
-  grade       Grade        @relation(fields: [gradeId], references: [id])
-  attendances Attendance[]
-  results     Result[]
-  birthday    DateTime
 }
 
 model Teacher {
@@ -51,6 +232,8 @@ model Teacher {
   lessons   Lesson[]
   classes   Class[]
   birthday  DateTime
+  managedInterventionPlans  InterventionPlan[]
+  managedInterventionStrategies  InterventionStrategy[]
 }
 
 model Parent {
@@ -70,7 +253,7 @@ model Grade {
   level Int @unique
 
   students Student[]
-  classess Class[]
+  classes Class[]
 }
 
 model Class {
@@ -179,6 +362,61 @@ model Announcement {
   class   Class? @relation(fields: [classId], references: [id])
 }
 
+model Curriculum {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  gradeLevel  Int
+  subjects    Subject[] @relation("CurriculumSubjects")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AcademicInterventionPlan {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  interventionType  String
+  description       String
+  startDate         DateTime @default(now())
+  endDate           DateTime?
+  status            String   @default("ACTIVE")
+  recommendedResources Json?
+}
+
+model ScholarshipEvaluation {
+  id                String   @id @default(cuid())
+  studentId         String   @unique
+  student           Student  @relation(fields: [studentId], references: [id])
+  evaluationDate    DateTime @default(now())
+  averageScore      Float
+  scholarshipLevel  String
+  fundingPercentage Int
+  additionalSupport Json?
+}
+
+model LearningPathway {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  recommendedCourses Json
+  intensityLevel    String
+  lastUpdated       DateTime @default(now())
+}
+
+model LearningIntervention {
+  id                String    @id @default(cuid())
+  studentId         String
+  student           Student   @relation(fields: [studentId], references: [id])
+  subject           String
+  interventionType  String
+  description       String
+  startDate         DateTime  @default(now())
+  endDate           DateTime?
+  status            String    @default("ACTIVE")
+  recommendedResources Json?
+}
+
 enum UserSex {
   MALE
   FEMALE
@@ -190,4 +428,2319 @@ enum Day {
   WEDNESDAY
   THURSDAY
   FRIDAY
+}
+
+enum AdmiraltyRank {
+  FLEET_ADMIRAL
+  VICE_ADMIRAL
+  REAR_ADMIRAL
+  ADMIRAL
+  COMMODORE
+}
+
+enum DivisionType {
+  COMMAND
+  ACADEMY
+  SALLIRREUG_TECH
+  RESEARCH_ETHICS
+}
+
+model AdmiraltyMember {
+  id            String        @id @default(cuid())
+  name          String
+  surname       String
+  email         String        @unique
+  rank          AdmiraltyRank
+  division      DivisionType
+  specialization String
+  startDate     DateTime      @default(now())
+  responsibilities String[]
+  strategicInitiatives StrategicInitiative[]
+}
+
+model StrategicInitiative {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  status        String        @default("PROPOSED")
+  startDate     DateTime      @default(now())
+  endDate       DateTime?
+  budget        Float         @default(0)
+  leaderId      String
+  leader        AdmiraltyMember @relation(fields: [leaderId], references: [id])
+  divisions     DivisionType[]
+}
+
+model EthicalStandard {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  name          String
+  description   String
+  implementationDate DateTime  @default(now())
+  complianceLevel Float       @default(0)
+}
+
+model CommunityOutreachProgram {
+  id            String        @id @default(cuid())
+  name          String
+  description   String
+  targetCommunity String
+  startDate     DateTime      @default(now())
+  endDate       DateTime?
+  participantCount Int        @default(0)
+  fundingAmount Float        @default(0)
+}
+
+enum AssessmentType {
+  DIAGNOSTIC
+  FORMATIVE
+  SUMMATIVE
+  PERFORMANCE_BASED
+  ADAPTIVE
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model Assessment {
+  id                  String           @id @default(cuid())
+  title               String
+  subject             String
+  type                AssessmentType
+  gradeLevel          Int
+  difficultyLevel     DifficultyLevel
+  learningObjectives  String[]
+  maxScore            Int
+  duration            Int
+  status              String           @default("DRAFT")
+  createdAt           DateTime         @default(now())
+  questions           Question[]
+  exams               Exam[]
+}
+
+model Question {
+  id                String           @id @default(cuid())
+  text              String
+  subjectId         Int
+  subject           Subject          @relation(fields: [subjectId], references: [id])
+  difficultyLevel   DifficultyLevel
+  type              String
+  points            Int
+  correctAnswer     String
+  possibleAnswers   String[]
+  assessmentId      String
+  assessment        Assessment       @relation(fields: [assessmentId], references: [id])
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING_WRITING
+  MULTIMODAL
+}
+
+enum CognitiveLoadLevel {
+  LOW
+  MODERATE
+  HIGH
+  OVERWHELMING
+}
+
+model StudentLearningProfile {
+  id                String           @id @default(cuid())
+  studentId         String           @unique
+  student           Student          @relation(fields: [studentId], references: [id])
+  primaryLearningStyle LearningStyle
+  cognitiveLoadLevel CognitiveLoadLevel
+  learningStyleStrengths String[]
+  learningStyleWeaknesses String[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model StudentInteraction {
+  id                String           @id @default(cuid())
+  studentId         String
+  student           Student          @relation(fields: [studentId], references: [id])
+  interactionType   String
+  resourceType      String
+  duration          Int
+  engagement        Float
+  timestamp         DateTime         @default(now())
+}
+
+model LearningRecommendation {
+  id                String           @id @default(cuid())
+  studentId         String
+  student           Student          @relation(fields: [studentId], references: [id])
+  recommendationType String
+  description       String
+  resources         Json
+  startDate         DateTime         @default(now())
+  endDate           DateTime?
+  status            String           @default("ACTIVE")
+}
+
+model PerformancePrediction {
+  id                String           @id @default(cuid())
+  studentId         String           @unique
+  student           Student          @relation(fields: [studentId], references: [id])
+  predictedScore    Float
+  confidenceInterval Json
+  predictionDate    DateTime         @default(now())
+  performanceGrowthPlan Json
+}
+
+enum LearningGoalType {
+  ACADEMIC_IMPROVEMENT
+  SKILL_DEVELOPMENT
+  CAREER_PREPARATION
+  PERSONAL_GROWTH
+}
+
+enum LearningPathComplexity {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model PersonalizedLearningProfile {
+  id                      String               @id @default(cuid())
+  studentId               String               @unique
+  student                 Student              @relation(fields: [studentId], references: [id])
+  primaryLearningGoal     LearningGoalType
+  learningPathComplexity  LearningPathComplexity
+  recommendedPrimaryPath  String
+  strategicObjectives     String[]
+  supportMechanisms       String[]
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+}
+
+model LearningPathway {
+  id                      String               @id @default(cuid())
+  studentId               String
+  student                 Student              @relation(fields: [studentId], references: [id])
+  pathType                LearningGoalType
+  focusAreas              String[]
+  milestones              Json
+  interventionStrategies  String[]
+  progressTracking        Json?
+  status                  String               @default("ACTIVE")
+  startDate               DateTime             @default(now())
+  expectedCompletionDate  DateTime?
+  actualCompletionDate    DateTime?
+}
+
+model LearningGoalAnalysis {
+  id                      String               @id @default(cuid())
+  studentId               String
+  student                 Student              @relation(fields: [studentId], references: [id])
+  goalType                LearningGoalType
+  goalInterpretation      String
+  keyLearningOpportunities Json
+  potentialChallenges     Json
+  successProbability      Float
+  analysisDate            DateTime             @default(now())
+}
+
+model PerformanceMetric {
+  id                      String               @id @default(cuid())
+  studentId               String
+  student                 Student              @relation(fields: [studentId], references: [id])
+  academicPerformance     Float
+  skillDevelopment        Float
+  careerPreparation       Float
+  personalGrowth          Float
+  overallProgressScore    Float
+  metricDate              DateTime             @default(now())
+}
+
+enum AIEthicalPrincipal {
+  FAIRNESS
+  TRANSPARENCY
+  ACCOUNTABILITY
+  PRIVACY
+  HUMAN_AGENCY
+  NON_MALEFICENCE
+}
+
+enum BiasCategory {
+  DEMOGRAPHIC
+  CULTURAL
+  LINGUISTIC
+  SOCIOECONOMIC
+  EDUCATIONAL
+}
+
+model AISystem {
+  id                      String               @id @default(cuid())
+  name                    String
+  description             String
+  trainingData            Json
+  intentionType           String
+  registrationDate        DateTime             @default(now())
+  ethicalScreeningStatus  String?
+  ethicalScreeningRemarks String?
+  ethicalAuditTrails      EthicalAuditTrail[]
+  biasDetectionLogs       BiasDetectionLog[]
+  ethicalInterventions    EthicalIntervention[]
+}
+
+model EthicalAuditTrail {
+  id                      String               @id @default(cuid())
+  aiSystemId              String
+  aiSystem                AISystem             @relation(fields: [aiSystemId], references: [id])
+  overallEthicalScore     Float
+  principalEvaluations    Json
+  biasAnalysis            Json
+  recommendedInterventions Json
+  createdAt               DateTime             @default(now())
+}
+
+model BiasDetectionLog {
+  id                      String               @id @default(cuid())
+  aiSystemId              String
+  aiSystem                AISystem             @relation(fields: [aiSystemId], references: [id])
+  biasCategory            BiasCategory
+  detectionResult         String
+  biasSeverityScore       Float
+  detectionDate           DateTime             @default(now())
+}
+
+model EthicalIntervention {
+  id                      String               @id @default(cuid())
+  aiSystemId              String
+  aiSystem                AISystem             @relation(fields: [aiSystemId], references: [id])
+  interventionType        String
+  description             String
+  recommendedActions      Json
+  status                  String               @default("PENDING")
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+}
+
+enum InterventionType {
+  ACADEMIC_SUPPORT
+  EMOTIONAL_SUPPORT
+  SKILL_DEVELOPMENT
+  CAREER_GUIDANCE
+  MENTAL_HEALTH
+}
+
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+model StudentRiskAssessment {
+  id                          String               @id @default(cuid())
+  studentId                   String
+  student                     Student              @relation(fields: [studentId], references: [id])
+  academicRiskLevel           RiskLevel
+  emotionalRiskLevel          RiskLevel
+  skillDevelopmentRiskLevel   RiskLevel
+  careerPreparationRiskLevel  RiskLevel
+  overallRiskLevel            RiskLevel
+  detailedAnalysis            String
+  assessmentDate              DateTime             @default(now())
+}
+
+model LearningIntervention {
+  id                      String               @id @default(cuid())
+  studentId               String
+  student                 Student              @relation(fields: [studentId], references: [id])
+  interventionType        InterventionType
+  riskLevel               RiskLevel
+  interventionPlan        Json
+  progressTracking        Json?
+  status                  String               @default("ACTIVE")
+  startDate               DateTime             @default(now())
+  expectedCompletionDate  DateTime?
+  actualCompletionDate    DateTime?
+}
+
+model LearningInterventionLog {
+  id                      String               @id @default(cuid())
+  studentId               String
+  student                 Student              @relation(fields: [studentId], references: [id])
+  interventionType        InterventionType
+  interventionPlanId      String
+  interventionPlan        Json
+  loggedAt                DateTime             @default(now())
+}
+
+model SupportTicket {
+  id                      String               @id @default(cuid())
+  interventionPlanId      String?
+  studentId               String?
+  student                 Student?             @relation(fields: [studentId], references: [id])
+  priority                String
+  status                  String
+  description             String
+  assignedTo              String?
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+}
+
+model EarlyWarningTrigger {
+  id                      String               @id @default(cuid())
+  studentId               String
+  student                 Student              @relation(fields: [studentId], references: [id])
+  riskType                String
+  currentRiskLevel        RiskLevel
+  triggerDescription      String
+  detectedAt              DateTime             @default(now())
+}
+
+enum CollaborationMode {
+  PEER_LEARNING
+  GROUP_PROJECT
+  MENTORSHIP
+  CROSS_DISCIPLINARY
+  GLOBAL_CHALLENGE
+}
+
+enum KnowledgeType {
+  ACADEMIC
+  SKILL_BASED
+  RESEARCH
+  INNOVATION
+  PROFESSIONAL_DEVELOPMENT
+}
+
+model User {
+  id       String @id
+  username String @unique
+  userKnowledgeProfile    UserKnowledgeProfile?
+  collaborativeLearningGroups CollaborativeLearningGroup[]
+  knowledgeContributions  KnowledgeContribution[]
+  knowledgeRecommendations KnowledgeRecommendation[]
+  userLearningProfile     UserLearningProfile?
+  personalizedLearningPathways PersonalizedLearningPathway[]
+  skillDevelopmentTracking SkillDevelopmentTracking[]
+  learningResourceRecommendations LearningResourceRecommendation[]
+  careerDevelopmentPathways CareerDevelopmentPathway[]
+  userSkillProfile        UserSkillProfile?
+  notifications Notification[]
+  researcher              Researcher?
+  managedDivisions        Division[]
+  notificationPreferences  NotificationPreference?
+  consentProfile           UserConsentProfile?
+}
+
+model UserKnowledgeProfile {
+  id                      String               @id @default(cuid())
+  userId                  String               @unique
+  user                    User                 @relation(fields: [userId], references: [id])
+  totalContributions      Int                  @default(0)
+  cumulativeQualityScore  Float                @default(0)
+  contributionIds         String[]
+  focusDomains            String[]
+  learningInterests       String[]
+}
+
+model CollaborativeLearningGroup {
+  id                      String               @id @default(cuid())
+  learningObjective       String
+  collaborationMode       CollaborationMode
+  participants            User[]
+  groupDynamics           Json
+  learningPathway         Json
+  progressTracking        Json?
+  status                  String               @default("IN_PROGRESS")
+  startDate               DateTime             @default(now())
+  expectedCompletionDate  DateTime?
+  actualCompletionDate    DateTime?
+}
+
+model KnowledgeContribution {
+  id                      String               @id @default(cuid())
+  userId                  String
+  user                    User                 @relation(fields: [userId], references: [id])
+  knowledgeType           KnowledgeType
+  title                   String
+  description             String
+  tags                    String[]
+  resourceLinks           String[]
+  qualityScore            Float                @default(0)
+  impactAnalysis          Json?
+  createdAt               DateTime             @default(now())
+}
+
+model KnowledgeRecommendation {
+  id                      String               @id @default(cuid())
+  userId                  String
+  user                    User                 @relation(fields: [userId], references: [id])
+  learningObjective       String
+  recommendedResources    Json
+  recommendationDate      DateTime             @default(now())
+}
+
+model LearningOpportunity {
+  id                      String               @id @default(cuid())
+  domain                  String
+  title                   String
+  description             String
+  difficulty              Int
+  tags                    String[]
+  resourceLinks           String[]
+  createdAt               DateTime             @default(now())
+}
+
+enum LearningPathwayType {
+  ACADEMIC_ADVANCEMENT
+  SKILL_MASTERY
+  CAREER_PREPARATION
+  PERSONAL_DEVELOPMENT
+  RESEARCH_INNOVATION
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model UserLearningProfile {
+  id                      String               @id @default(cuid())
+  userId                  String               @unique
+  user                    User                 @relation(fields: [userId], references: [id])
+  personalLearningPathwayIds String[]
+  learningObjectives      String[]
+  currentSkillLevel       SkillLevel
+  focusDomains            String[]
+  learningInterests       String[]
+}
+
+model PersonalizedLearningPathway {
+  id                      String               @id @default(cuid())
+  userId                  String
+  user                    User                 @relation(fields: [userId], references: [id])
+  learningPathwayType     LearningPathwayType
+  learningObjective       String
+  pathwayDetails          Json
+  skillProgressionMap     Json
+  recommendedResources    Json
+  learningMilestones      Json
+  progressTracking        Json?
+  pathwayOptimizationInsights Json?
+  optimizedPathwayDetails Json?
+  status                  String               @default("IN_PROGRESS")
+  startDate               DateTime             @default(now())
+  expectedCompletionDate  DateTime?
+  actualCompletionDate    DateTime?
+}
+
+model SkillDevelopmentTracking {
+  id                      String               @id @default(cuid())
+  userId                  String
+  user                    User                 @relation(fields: [userId], references: [id])
+  skillName               String
+  currentSkillLevel       SkillLevel
+  learningActivities      Json
+  skillProgressAnalysis   Json
+  recommendedNextSteps    Json
+  trackingDate            DateTime             @default(now())
+}
+
+model LearningResourceRecommendation {
+  id                      String               @id @default(cuid())
+  userId                  String
+  user                    User                 @relation(fields: [userId], references: [id])
+  learningDomain          String
+  currentSkillLevel       SkillLevel
+  recommendedResources    Json
+  recommendationDate      DateTime             @default(now())
+}
+
+model CareerDevelopmentPathway {
+  id                      String               @id @default(cuid())
+  userId                  String
+  user                    User                 @relation(fields: [userId], references: [id])
+  careerGoal              String
+  pathwayDetails          Json
+  skillDevelopmentRoadmap Json
+  status                  String               @default("IN_PROGRESS")
+  startDate               DateTime             @default(now())
+  expectedCompletionDate  DateTime?
+  actualCompletionDate    DateTime?
+}
+
+model UserSkillProfile {
+  id                      String               @id @default(cuid())
+  userId                  String               @unique
+  user                    User                 @relation(fields: [userId], references: [id])
+  skillTrackingIds        String[]
+  totalSkillsTracked      Int                  @default(0)
+  skillProgressionMap     Json?
+}
+
+enum NotificationType {
+  SYSTEM
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+enum NotificationCategory {
+  SCHOLARSHIP
+  APPRENTICESHIP
+  ACADEMIC_UPDATE
+  PROGRAM_ANNOUNCEMENT
+  PERFORMANCE_REVIEW
+  SYSTEM_ALERT
+  SECURITY
+  BILLING
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model NotificationPreference {
+  id                          String              @id @default(cuid())
+  
+  // User Association
+  userId                      String              @unique
+  user                        User                @relation(fields: [userId], references: [id])
+  
+  // Notification Channel Preferences
+  enableEmailNotifications    Boolean             @default(true)
+  enableSmsNotifications      Boolean             @default(false)
+  enablePushNotifications     Boolean             @default(true)
+  enableInAppNotifications    Boolean             @default(true)
+  
+  // Category-specific Preferences
+  scholarshipNotifications    Boolean             @default(true)
+  apprenticeshipNotifications Boolean             @default(true)
+  academicUpdateNotifications Boolean             @default(true)
+  performanceReviewNotifications Boolean          @default(true)
+  
+  // Notification Frequency and Timing
+  dailyDigestEnabled          Boolean             @default(false)
+  weeklyDigestEnabled         Boolean             @default(false)
+  
+  // Advanced Preferences
+  quietHoursStart             DateTime?
+  quietHoursEnd               DateTime?
+  
+  // Compliance and Privacy
+  consentGiven                Boolean             @default(true)
+  lastUpdated                 DateTime            @default(now())
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model Notification {
+  id                          String              @id @default(cuid())
+  
+  // Notification Content
+  title                       String
+  body                        String
+  
+  // Notification Metadata
+  type                        NotificationType
+  category                    NotificationCategory
+  priority                    NotificationPriority @default(MEDIUM)
+  
+  // Routing and Delivery
+  recipientId                 String
+  recipient                   User                @relation(fields: [recipientId], references: [id])
+  
+  // Delivery Tracking
+  deliveryStatus              NotificationDeliveryStatus @default(PENDING)
+  channels                    NotificationType[]
+  
+  // Context and Routing
+  relatedEntityType           String?             // e.g., 'Scholarship', 'Apprenticeship'
+  relatedEntityId             String?
+  
+  // Timestamp and Tracking
+  createdAt                   DateTime            @default(now())
+  sentAt                      DateTime?
+  readAt                      DateTime?
+  
+  // AI and Personalization
+  aiGeneratedInsights         Json?
+  complianceMetadata          Json?
+  regulatoryCompliance        ComplianceRegulation[]
+  processingPurpose           DataProcessingPurpose?
+  consentVerified             Boolean             @default(false)
+  consentVersion              String?
+}
+
+// Compliance and Privacy Enums
+enum ConsentStatus {
+  PENDING
+  GRANTED
+  REVOKED
+  EXPIRED
+}
+
+enum DataProcessingPurpose {
+  COMMUNICATION
+  PERSONALIZATION
+  ANALYTICS
+  MARKETING
+  RESEARCH
+  PERFORMANCE_TRACKING
+}
+
+enum ComplianceRegulation {
+  GDPR
+  CCPA
+  HIPAA
+  FERPA
+  COPPA
+}
+
+// User Consent and Privacy Management Model
+model UserConsentProfile {
+  id                          String              @id @default(cuid())
+  
+  // User Association
+  userId                      String              @unique
+  user                        User                @relation(fields: [userId], references: [id])
+  
+  // Consent Tracking
+  globalConsentStatus         ConsentStatus       @default(PENDING)
+  consentGrantedAt            DateTime?
+  consentRevokedAt            DateTime?
+  
+  // Detailed Consent Preferences
+  purposeConsents             PurposeConsent[]
+  
+  // Regulatory Compliance
+  applicableRegulations       ComplianceRegulation[]
+  
+  // Data Retention and Deletion
+  dataRetentionPeriod         Int                 @default(365) // Days
+  scheduledDeletionDate       DateTime?
+  
+  // Audit Trail
+  consentChangeLog            ConsentChangeLog[]
+  
+  // Compliance Metadata
+  isMinor                     Boolean             @default(false)
+  parentalConsentRequired     Boolean             @default(false)
+  parentalConsentStatus       ConsentStatus?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Purpose-Specific Consent Model
+model PurposeConsent {
+  id                          String              @id @default(cuid())
+  
+  // Consent Profile Association
+  consentProfileId            String
+  consentProfile              UserConsentProfile  @relation(fields: [consentProfileId], references: [id])
+  
+  // Consent Details
+  purpose                     DataProcessingPurpose
+  status                      ConsentStatus        @default(PENDING)
+  
+  // Specific Consent Metadata
+  consentVersion              String?
+  lastUpdated                 DateTime            @default(now())
+  
+  // Optional Granular Preferences
+  allowPersonalization        Boolean             @default(false)
+  allowThirdPartySharing      Boolean             @default(false)
+}
+
+// Consent Change Tracking Model
+model ConsentChangeLog {
+  id                          String              @id @default(cuid())
+  
+  // Consent Profile Association
+  consentProfileId            String
+  consentProfile              UserConsentProfile  @relation(fields: [consentProfileId], references: [id])
+  
+  // Change Details
+  changeType                  String // e.g., 'GRANTED', 'REVOKED', 'UPDATED'
+  changedPurposes             DataProcessingPurpose[]
+  
+  // Metadata
+  changedBy                   String? // User ID or system
+  changeReason                String?
+  ipAddress                   String?
+  userAgent                   String?
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Adaptive Learning Enums
+enum LearningPathType {
+  ACADEMIC_ENRICHMENT
+  SKILL_DEVELOPMENT
+  CAREER_PREPARATION
+  PERSONAL_GROWTH
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING_WRITING
+}
+
+enum LearningProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+  NEEDS_IMPROVEMENT
+}
+
+// Learning Resource Model
+model LearningResource {
+  id                          String              @id @default(cuid())
+  learningPathId              String
+  learningPath                LearningPath        @relation(fields: [learningPathId], references: [id])
+  
+  // Resource Details
+  title                       String
+  type                        String
+  url                         String
+  
+  // Learning Metadata
+  subject                     String
+  difficulty                  String
+  learningObjectives          String[]
+  
+  // Personalization Parameters
+  recommendationScore         Float?
+  learningStyles              String[]
+  
+  // Engagement Metrics
+  averageCompletionTime       Int?
+  userRating                  Float?
+  
+  // Student Progress Tracking
+  studentProgress             StudentResourceProgress[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Learning Path Model
+model LearningPath {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Path Configuration
+  type                        LearningPathType
+  title                       String
+  description                 String?
+  
+  // Learning Objectives
+  primaryObjective            String
+  secondaryObjectives         String[]
+  
+  // Path Composition
+  learningResources           LearningResource[]
+  
+  // Personalization Metrics
+  learningStyle               LearningStyle
+  personalizedRecommendationFactor Float
+  
+  // Temporal Tracking
+  startDate                   DateTime
+  expectedCompletionDate      DateTime
+  actualCompletionDate        DateTime?
+  
+  // Progress Tracking
+  progressStatus              LearningProgressStatus
+  completionPercentage        Float
+  
+  // AI and ML Insights
+  aiGeneratedInsights         Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Student Resource Progress Model
+model StudentResourceProgress {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  resourceId                  String
+  resource                    LearningResource    @relation(fields: [resourceId], references: [id])
+  
+  // Progress Details
+  startTime                   DateTime
+  completionTime              DateTime?
+  
+  // Performance Metrics
+  timeSpent                   Int?
+  completionStatus            String
+  performanceScore            Float?
+  
+  // Engagement Tracking
+  interactionLevel            Float?
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Learning Styles and AI Recommendation Models
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING_WRITING
+  MULTIMODAL
+}
+
+enum RecommendationOutcome {
+  COMPLETED
+  PARTIAL
+  ABANDONED
+}
+
+model LearningProfile {
+  id            String        @id @default(cuid())
+  studentId     String        @unique
+  student       Student       @relation(fields: [studentId], references: [id])
+  primaryStyle  LearningStyle
+  secondaryStyle LearningStyle?
+  preferredModalities String[]
+  learningPace  String
+  strengthAreas String[]
+  challengeAreas String[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model RecommendationTracking {
+  id              String              @id @default(cuid())
+  studentId       String
+  student         Student             @relation(fields: [studentId], references: [id])
+  recommendationId String
+  outcome         RecommendationOutcome
+  confidence      Float
+  relevanceScore  Float
+  recommendationType String
+  timestamp       DateTime            @default(now())
+  additionalMetadata Json?
+}
+
+// Equity and Inclusion Models
+enum DiversityCategory {
+  RACE
+  GENDER
+  SOCIOECONOMIC
+  DISABILITY
+  FIRST_GENERATION
+}
+
+enum InclusionMetricType {
+  ACADEMIC_SUPPORT
+  RESOURCE_ACCESS
+  MENTORSHIP
+  COMMUNITY_ENGAGEMENT
+}
+
+model EquityProfile {
+  id                   String             @id @default(cuid())
+  studentId            String             @unique
+  student              Student            @relation(fields: [studentId], references: [id])
+  
+  // Demographic Information
+  race                 String?
+  gender               String?
+  socioeconomicStatus  String?
+  isFirstGeneration    Boolean            @default(false)
+  hasDisability        Boolean            @default(false)
+
+  // Additional Context
+  primaryLanguage      String?
+  immigrationStatus    String?
+  
+  // Tracking Metrics
+  inclusionMetrics     InclusionMetric[]
+  
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model InclusionMetric {
+  id                   String             @id @default(cuid())
+  equityProfileId      String
+  equityProfile        EquityProfile      @relation(fields: [equityProfileId], references: [id])
+  
+  metricType           InclusionMetricType
+  score                Float
+  
+  // Contextual Information
+  academicYear         Int
+  semester             String?
+  
+  // Trend and Comparative Data
+  nationalBenchmark    Float?
+  institutionalAverage Float?
+  
+  createdAt            DateTime           @default(now())
+}
+
+model EquityIntervention {
+  id                   String             @id @default(cuid())
+  title                String
+  description          String
+  category             DiversityCategory
+  
+  // Intervention Tracking
+  implementationDate   DateTime
+  targetGroups         String[]
+  expectedOutcomes     String[]
+  
+  // Outcome Tracking
+  actualOutcomes       String[]
+  successRate          Float?
+  
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+// Intervention and Support Models
+enum RiskCategory {
+  ACADEMIC
+  ATTENDANCE
+  BEHAVIORAL
+  SOCIAL_EMOTIONAL
+  FINANCIAL
+}
+
+enum InterventionPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum InterventionPlanStatus {
+  INITIATED
+  IN_PROGRESS
+  SUCCESSFUL
+  NEEDS_REVIEW
+  DISCONTINUED
+}
+
+model InterventionPlan {
+  id                String                @id @default(cuid())
+  studentId         String
+  student           Student               @relation(fields: [studentId], references: [id])
+  
+  // Risk and Intervention Details
+  riskLevel         String
+  riskCategories    RiskCategory[]
+  interventions     String[]
+  triggerDetails    String[]
+  status            InterventionPlanStatus @default(INITIATED)
+  
+  // Tracking and Effectiveness
+  startDate         DateTime              @default(now())
+  lastReviewDate    DateTime?
+  completionDate    DateTime?
+  
+  // Performance Metrics
+  initialRiskScore  Float?
+  currentRiskScore  Float?
+  improvementRate   Float?
+  
+  // Stakeholder Involvement
+  primaryAdvisorId  String?
+  primaryAdvisor    Teacher?              @relation(fields: [primaryAdvisorId], references: [id])
+  
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+}
+
+model LearningInterventionLog {
+  id                String                @id @default(cuid())
+  studentId         String
+  student           Student               @relation(fields: [studentId], references: [id])
+  
+  // Intervention Details
+  interventionType  String
+  description       String
+  date              DateTime              @default(now())
+  
+  // Outcome Tracking
+  outcome           String?
+  notes             String?
+  
+  // Performance Impact
+  performanceMetrics Json?
+  
+  createdAt         DateTime              @default(now())
+}
+
+// Risk Prediction and Detection Models
+enum PredictionConfidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model RiskPrediction {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Risk Prediction Details
+  riskCategory                RiskCategory
+  predictionScore             Float
+  confidenceLevel             PredictionConfidence
+  predictedOutcome            String
+  
+  // Contributing Factors and Recommendations
+  contributingFactors         String[]
+  recommendedPreventiveActions String[]
+  
+  // Tracking and Analysis
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model RiskTrendAnalysis {
+  id                          String              @id @default(cuid())
+  analysisDate                DateTime            @default(now())
+  
+  // Trend Analysis Metrics
+  overallRiskDistribution     Json
+  categoryTrends              Json
+  confidenceLevelBreakdown    Json
+  
+  // Comparative Data
+  previousAnalysisId          String?
+  previousAnalysis            RiskTrendAnalysis?  @relation("RiskTrendAnalysisHistory", fields: [previousAnalysisId], references: [id])
+  subsequentAnalyses          RiskTrendAnalysis[] @relation("RiskTrendAnalysisHistory")
+}
+
+// Intervention Planning Models
+enum InterventionType {
+  ACADEMIC_SUPPORT
+  MENTORSHIP
+  COUNSELING
+  SKILL_DEVELOPMENT
+  FINANCIAL_AID
+  SOCIAL_INTEGRATION
+}
+
+enum InterventionOutcome {
+  SUCCESSFUL
+  PARTIALLY_SUCCESSFUL
+  UNSUCCESSFUL
+}
+
+model InterventionStrategy {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Strategy Details
+  riskCategory                RiskCategory
+  interventionType            InterventionType
+  description                 String
+  startDate                   DateTime            @default(now())
+  expectedDuration            Int                 @default(12) // weeks
+  primaryInterventionistId    String?
+  primaryInterventionist      Teacher?            @relation(fields: [primaryInterventionistId], references: [id])
+  
+  // Customization and Targeting
+  targetOutcomes              String[]
+  customizationScore          Float
+  
+  // Progress and Outcome Tracking
+  progress                    InterventionProgress?
+  outcome                     InterventionOutcome?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model InterventionProgress {
+  id                          String              @id @default(cuid())
+  strategyId                  String              @unique
+  strategy                    InterventionStrategy @relation(fields: [strategyId], references: [id])
+  
+  // Progress Tracking
+  currentPhase                String
+  progressPercentage          Float
+  
+  // Milestone Tracking
+  milestones                  Json
+  
+  // Performance Metrics
+  performanceMetrics          Json
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model InterventionOutcomeAnalysis {
+  id                          String              @id @default(cuid())
+  analysisDate                DateTime            @default(now())
+  
+  // Outcome Distribution
+  totalInterventions          Int
+  outcomeDistribution         Json
+  
+  // Effectiveness Analysis
+  riskCategoryEffectiveness   Json
+  topPerformingStrategies     Json
+  
+  // Comparative Data
+  previousAnalysisId          String?
+  previousAnalysis            InterventionOutcomeAnalysis?  @relation("InterventionOutcomeAnalysisHistory", fields: [previousAnalysisId], references: [id])
+  subsequentAnalyses          InterventionOutcomeAnalysis[] @relation("InterventionOutcomeAnalysisHistory")
+}
+
+// Machine Learning Support Modeling Models
+enum SupportModelType {
+  ACADEMIC_PERFORMANCE
+  LEARNING_TRAJECTORY
+  BEHAVIORAL_PREDICTION
+  EMOTIONAL_RESILIENCE
+  CAREER_ALIGNMENT
+}
+
+model MLSupportModel {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Model Characteristics
+  modelType                   SupportModelType
+  predictionConfidence        Float
+  
+  // Prediction and Recommendation Details
+  predictedOutcomes           String[]
+  recommendedInterventions    String[]
+  
+  // Model Parameters and Training Metrics
+  modelParameters             Json
+  trainingMetrics             Json
+  
+  // Tracking and Analysis
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model MLModelEvaluation {
+  id                          String              @id @default(cuid())
+  evaluationDate              DateTime            @default(now())
+  
+  // Evaluation Metrics
+  totalModels                 Int
+  modelTypeDistribution       Json
+  performanceMetrics          Json
+  topPerformingModels         Json
+  
+  // Comparative Data
+  previousEvaluationId        String?
+  previousEvaluation          MLModelEvaluation?  @relation("MLModelEvaluationHistory", fields: [previousEvaluationId], references: [id])
+  subsequentEvaluations       MLModelEvaluation[] @relation("MLModelEvaluationHistory")
+}
+
+// Enums for Growth Tracking
+enum GrowthDimension {
+  ACADEMIC
+  SOCIAL_EMOTIONAL
+  EXTRACURRICULAR
+  PERSONAL_DEVELOPMENT
+  CAREER_READINESS
+}
+
+enum ProgressStatus {
+  EXCEEDING_EXPECTATIONS
+  ON_TRACK
+  NEEDS_SUPPORT
+  AT_RISK
+}
+
+// Student Growth Tracking Models
+model StudentGrowthProfile {
+  id                          String              @id @default(cuid())
+  studentId                   String              @unique
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Comprehensive Growth Metrics
+  overallProgressScore        Float
+  developmentPotential        Float
+  
+  // Dimensional Metrics
+  academicScore               Float
+  socialEmotionalScore        Float
+  extracurricularScore        Float
+  personalDevelopmentScore    Float
+  careerReadinessScore        Float
+  
+  // Tracking and Analysis
+  metrics                     Json
+  recommendedInterventions    String[]
+  historicalTrends            Json
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model StudentGrowthRecord {
+  id                          String              @id @default(cuid())
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Dimensional Scores
+  academicScore               Float
+  socialEmotionalScore        Float
+  extracurricularScore        Float
+  personalDevelopmentScore    Float
+  careerReadinessScore        Float
+  
+  // Tracking Metadata
+  progressStatus              ProgressStatus
+  trend                       String
+  
+  date                        DateTime            @default(now())
+}
+
+// Research Domain Enums
+enum ResearchDomain {
+  EDUCATION_TECHNOLOGY
+  LEARNING_SCIENCES
+  STUDENT_SUPPORT
+  PEDAGOGICAL_INNOVATION
+  INTERDISCIPLINARY_STUDIES
+}
+
+enum ResearchStatus {
+  PROPOSAL
+  IN_PROGRESS
+  PEER_REVIEW
+  PUBLISHED
+  COMPLETED
+}
+
+// Researcher Model
+model Researcher {
+  id                          String              @id @default(cuid())
+  userId                      String              @unique
+  user                        User                @relation(fields: [userId], references: [id])
+  
+  // Professional Details
+  name                        String
+  email                       String
+  department                  String
+  academicTitle               String
+  
+  // Research Expertise
+  expertise                   ResearchExpertise[]
+  researchProjects            ResearchProject[]
+  
+  // Tracking and Metrics
+  publicationsCount           Int                 @default(0)
+  citationCount               Int                 @default(0)
+  hIndex                      Float               @default(0)
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+model ResearchExpertise {
+  id                          String              @id @default(cuid())
+  researcherId                String
+  researcher                  Researcher          @relation(fields: [researcherId], references: [id])
+  
+  area                        String
+  subDomains                  String[]
+  yearsOfExperience           Int
+}
+
+// Research Project Model
+model ResearchProject {
+  id                          String              @id @default(cuid())
+  
+  // Project Details
+  title                       String
+  domain                      ResearchDomain
+  abstract                    String
+  status                      ResearchStatus
+  
+  // Researchers and Contributors
+  primaryResearchers          Researcher[]
+  studentContributors         Student[]
+  
+  // Project Metadata
+  fundingSource               String?
+  expectedOutcomes            String[]
+  methodologies               String[]
+  ethicalConsiderations       String[]
+  
+  // Temporal Tracking
+  startDate                   DateTime
+  expectedCompletionDate      DateTime
+  
+  // Publication Tracking
+  publishedPapers             PublishedPaper[]
+  
+  // Research Roadmap and Milestones
+  researchRoadmap             Json?
+  milestones                  Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Published Research Paper Model
+model PublishedPaper {
+  id                          String              @id @default(cuid())
+  researchProjectId           String
+  researchProject             ResearchProject     @relation(fields: [researchProjectId], references: [id])
+  
+  // Publication Details
+  title                       String
+  journalName                 String
+  publicationDate             DateTime
+  doi                         String?
+  
+  // Impact Metrics
+  journalImpactFactor         Float               @default(0)
+  citationCount               Int                 @default(0)
+  
+  // Authorship
+  authors                     Researcher[]
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Division Management Enums
+enum DivisionType {
+  ACADEMIC
+  RESEARCH
+  STUDENT_SUPPORT
+  INNOVATION
+  ADMINISTRATIVE
+}
+
+enum PerformanceMetricType {
+  STUDENT_SUCCESS_RATE
+  RESEARCH_OUTPUT
+  INNOVATION_INDEX
+  OPERATIONAL_EFFICIENCY
+  FINANCIAL_PERFORMANCE
+}
+
+// Division Model
+model Division {
+  id                          String              @id @default(cuid())
+  
+  // Basic Division Information
+  name                        String
+  type                        DivisionType
+  description                 String?
+  
+  // Leadership and Hierarchy
+  leaderId                    String
+  leader                      User                @relation(fields: [leaderId], references: [id])
+  parentDivisionId            String?
+  parentDivision              Division?           @relation("DivisionHierarchy", fields: [parentDivisionId], references: [id])
+  subDivisions                Division[]          @relation("DivisionHierarchy")
+  
+  // Configuration Parameters
+  strategicGoals              String[]
+  budgetAllocation            Float
+  resourceAllocation          Json
+  
+  // Compliance and Governance
+  complianceRequirements      String[]
+  governanceStructure         Json
+  
+  // Performance and Tracking
+  performanceMetrics          DivisionPerformance[]
+  strategicInitiatives        DivisionStrategicInitiative[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Division Performance Tracking Model
+model DivisionPerformance {
+  id                          String              @id @default(cuid())
+  divisionId                  String
+  division                    Division            @relation(fields: [divisionId], references: [id])
+  
+  // Performance Metrics
+  studentSuccessRate          Float
+  researchOutput              Float
+  innovationIndex             Float
+  operationalEfficiency       Float
+  financialPerformance        Float
+  
+  // Tracking Metadata
+  performanceMetrics          Json
+  strategicInitiatives        Json
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Strategic Initiative Model
+model DivisionStrategicInitiative {
+  id                          String              @id @default(cuid())
+  divisionId                  String
+  division                    Division            @relation(fields: [divisionId], references: [id])
+  
+  // Initiative Details
+  name                        String
+  description                 String
+  status                      String
+  progress                    Float
+  impactScore                 Float
+  
+  // Temporal Tracking
+  startDate                   DateTime
+  expectedCompletionDate      DateTime?
+  actualCompletionDate        DateTime?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Strategic Partnership Enums
+enum PartnershipStatus {
+  PROSPECTIVE
+  NEGOTIATION
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum PartnershipType {
+  RESEARCH
+  ACADEMIC
+  INDUSTRY
+  GOVERNMENT
+  NON_PROFIT
+  TECHNOLOGY
+  INNOVATION
+}
+
+enum ComplianceLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// Strategic Partner Model
+model StrategicPartner {
+  id                          String              @id @default(cuid())
+  
+  // Basic Information
+  name                        String
+  type                        PartnershipType
+  description                 String?
+  
+  // Contact Information
+  primaryContactName          String
+  primaryContactEmail         String
+  primaryContactPhone         String?
+  
+  // Organizational Details
+  organizationType            String
+  headquarters                String
+  websiteUrl                  String?
+  
+  // Partnership Specifics
+  partnershipStatus           PartnershipStatus   @default(PROSPECTIVE)
+  partnershipStartDate        DateTime?
+  partnershipEndDate          DateTime?
+  
+  // Compliance and Governance
+  complianceLevel             ComplianceLevel     @default(MEDIUM)
+  governanceDocuments         Json?
+  
+  // Financial and Strategic Metrics
+  annualCollaborationValue    Float?
+  strategicAlignmentScore     Float?
+  
+  // Collaboration Tracking
+  activeProjects              StrategicProject[]
+  communicationLogs           PartnershipCommunicationLog[]
+  performanceReviews          PartnershipPerformanceReview[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Strategic Project Model
+model StrategicProject {
+  id                          String              @id @default(cuid())
+  
+  // Project Identification
+  title                       String
+  description                 String?
+  
+  // Partnership Details
+  partnerId                   String
+  partner                     StrategicPartner    @relation(fields: [partnerId], references: [id])
+  
+  // Project Metadata
+  startDate                   DateTime
+  expectedEndDate             DateTime
+  actualEndDate               DateTime?
+  
+  // Project Status and Tracking
+  status                      String              @default("ACTIVE")
+  progressPercentage          Float               @default(0)
+  
+  // Resource Allocation
+  budgetAllocated             Float?
+  resourcesCommitted          Json?
+  
+  // Collaboration Metrics
+  jointResearchOutputs        String[]
+  knowledgeExchangeEvents     Int                 @default(0)
+  
+  // Performance and Impact
+  strategicImpactScore        Float?
+  innovationPotentialScore    Float?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Partnership Communication Log
+model PartnershipCommunicationLog {
+  id                          String              @id @default(cuid())
+  
+  // Partnership Context
+  partnerId                   String
+  partner                     StrategicPartner    @relation(fields: [partnerId], references: [id])
+  
+  // Communication Details
+  communicationType           String              @default("MEETING")
+  communicationDate           DateTime
+  participants                String[]
+  
+  // Communication Content
+  summary                     String
+  keyDiscussionPoints         String[]
+  actionItems                 String[]
+  
+  // Follow-up and Tracking
+  followUpRequired            Boolean             @default(false)
+  followUpDate                DateTime?
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Partnership Performance Review
+model PartnershipPerformanceReview {
+  id                          String              @id @default(cuid())
+  
+  // Partnership Context
+  partnerId                   String
+  partner                     StrategicPartner    @relation(fields: [partnerId], references: [id])
+  
+  // Review Metadata
+  reviewDate                  DateTime
+  reviewPeriodStart           DateTime
+  reviewPeriodEnd             DateTime
+  
+  // Performance Metrics
+  overallPerformanceScore     Float
+  strategicAlignmentScore     Float
+  collaborationEffectivenessScore Float
+  
+  // Detailed Evaluation
+  strengths                   String[]
+  areasForImprovement         String[]
+  recommendedActions          String[]
+  
+  // Future Outlook
+  continuationRecommendation  String
+  riskAssessment              String?
+  
+  createdAt                   DateTime            @default(now())
+}
+
+// Governance and Compliance Tracking
+model ComplianceDocument {
+  id                          String              @id @default(cuid())
+  
+  // Document Identification
+  title                       String
+  type                        String
+  version                     String
+  
+  // Document Content and Metadata
+  documentUrl                 String
+  uploadDate                  DateTime            @default(now())
+  lastReviewDate              DateTime?
+  
+  // Compliance Tracking
+  complianceLevel             ComplianceLevel
+  applicablePartners          String[]
+  
+  // Review and Approval
+  approvedBy                  String?
+  approvalDate                DateTime?
+  
+  // Tracking and Versioning
+  isActive                    Boolean             @default(true)
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Curriculum Management Enums
+enum CurriculumType {
+  ACADEMIC
+  VOCATIONAL
+  PROFESSIONAL_DEVELOPMENT
+  STEM
+  ARTS
+  HUMANITIES
+  INTERDISCIPLINARY
+}
+
+enum CourseDeliveryMode {
+  IN_PERSON
+  ONLINE
+  HYBRID
+  SELF_PACED
+  COHORT_BASED
+}
+
+enum LearningOutcomeCategory {
+  KNOWLEDGE
+  SKILLS
+  COMPETENCIES
+  ATTITUDES
+  PROFESSIONAL_BEHAVIORS
+}
+
+enum CurriculumStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  ACTIVE
+  ARCHIVED
+}
+
+// Curriculum Model
+model Curriculum {
+  id                          String              @id @default(cuid())
+  
+  // Curriculum Identification
+  title                       String
+  code                        String              @unique
+  type                        CurriculumType
+  description                 String?
+  
+  // Organizational Context
+  department                  String
+  academicLevel               String
+  
+  // Metadata and Classification
+  keywords                    String[]
+  tags                        String[]
+  
+  // Curriculum Lifecycle
+  status                      CurriculumStatus    @default(DRAFT)
+  versionNumber               String              @default("1.0")
+  
+  // Temporal Tracking
+  developmentStartDate        DateTime
+  approvalDate                DateTime?
+  implementationDate          DateTime?
+  
+  // Curriculum Composition
+  courses                     Course[]
+  learningOutcomes            LearningOutcome[]
+  
+  // Approval and Governance
+  developedBy                 String
+  approvedBy                  String?
+  
+  // Performance and Impact
+  studentEnrollmentCount      Int                 @default(0)
+  successRate                 Float?
+  
+  // AI and Analytics
+  aiGeneratedInsights         Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Course Model
+model Course {
+  id                          String              @id @default(cuid())
+  
+  // Course Identification
+  title                       String
+  code                        String              @unique
+  description                 String?
+  
+  // Curriculum Association
+  curriculumId                String
+  curriculum                  Curriculum          @relation(fields: [curriculumId], references: [id])
+  
+  // Course Metadata
+  creditHours                 Float
+  deliveryMode                CourseDeliveryMode
+  
+  // Temporal Details
+  startDate                   DateTime
+  endDate                     DateTime
+  
+  // Instructional Design
+  learningObjectives          String[]
+  prerequisites               String[]
+  
+  // Resource Allocation
+  instructors                 String[]
+  recommendedResources        String[]
+  
+  // Performance Tracking
+  enrolledStudents            StudentCourseEnrollment[]
+  assessments                 CourseAssessment[]
+  
+  // AI-Enhanced Features
+  difficultyLevel             String?
+  adaptiveLearningScore       Float?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Learning Outcome Model
+model LearningOutcome {
+  id                          String              @id @default(cuid())
+  
+  // Curriculum Association
+  curriculumId                String
+  curriculum                  Curriculum          @relation(fields: [curriculumId], references: [id])
+  
+  // Outcome Identification
+  title                       String
+  description                 String?
+  
+  // Categorization
+  category                    LearningOutcomeCategory
+  
+  // Measurable Criteria
+  performanceIndicators       String[]
+  assessmentMethods           String[]
+  
+  // Alignment and Mapping
+  alignedCompetencies         String[]
+  relatedCourses              String[]
+  
+  // Performance Tracking
+  achievementRate             Float?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Student Course Enrollment Model
+model StudentCourseEnrollment {
+  id                          String              @id @default(cuid())
+  
+  // Student and Course Context
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  courseId                    String
+  course                      Course              @relation(fields: [courseId], references: [id])
+  
+  // Enrollment Details
+  enrollmentDate              DateTime            @default(now())
+  status                      String              @default("ACTIVE")
+  
+  // Performance Tracking
+  progressPercentage          Float               @default(0)
+  finalGrade                  String?
+  
+  // Engagement Metrics
+  attendanceRate              Float?
+  participationScore          Float?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Course Assessment Model
+model CourseAssessment {
+  id                          String              @id @default(cuid())
+  
+  // Course Context
+  courseId                    String
+  course                      Course              @relation(fields: [courseId], references: [id])
+  
+  // Assessment Metadata
+  title                       String
+  type                        String
+  description                 String?
+  
+  // Temporal Details
+  scheduledDate               DateTime
+  duration                    Int                 @default(60)
+  
+  // Assessment Configuration
+  maximumScore                Float
+  passingThreshold            Float
+  
+  // Student Performance
+  studentAssessments          StudentAssessment[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Student Assessment Model
+model StudentAssessment {
+  id                          String              @id @default(cuid())
+  
+  // Assessment and Student Context
+  assessmentId                String
+  assessment                  CourseAssessment    @relation(fields: [assessmentId], references: [id])
+  
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  // Performance Metrics
+  score                       Float
+  percentageScore             Float
+  
+  // Qualitative Feedback
+  feedback                    String?
+  
+  // AI-Enhanced Insights
+  performanceCategory         String?
+  improvementRecommendations  String[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Apprenticeship Tracking Enums
+enum ApprenticeshipStatus {
+  PENDING
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  TERMINATED
+}
+
+enum ApprenticeshipCategory {
+  TECHNICAL
+  PROFESSIONAL
+  CREATIVE
+  RESEARCH
+  ENTREPRENEURIAL
+  SOCIAL_IMPACT
+}
+
+enum SkillProficiencyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum MentorRating {
+  EXCELLENT
+  GOOD
+  SATISFACTORY
+  NEEDS_IMPROVEMENT
+}
+
+// Apprenticeship Partner Model
+model ApprenticeshipPartner {
+  id                          String              @id @default(cuid())
+  
+  // Organization Details
+  name                        String
+  industry                    String
+  description                 String?
+  
+  // Contact Information
+  contactPerson               String
+  email                       String
+  phone                       String
+  
+  // Partnership Metrics
+  totalApprenticeships        Int                 @default(0)
+  successRate                 Float?
+  
+  // Compliance and Governance
+  legalDocuments              Json?
+  complianceCertifications    String[]
+  
+  // Apprenticeship Programs
+  apprenticeshipPrograms      ApprenticeshipProgram[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Apprenticeship Program Model
+model ApprenticeshipProgram {
+  id                          String              @id @default(cuid())
+  
+  // Program Identification
+  title                       String
+  code                        String              @unique
+  description                 String?
+  
+  // Partner Association
+  partnerId                   String
+  partner                     ApprenticeshipPartner @relation(fields: [partnerId], references: [id])
+  
+  // Program Characteristics
+  category                    ApprenticeshipCategory
+  duration                    Int                 @default(6)  // months
+  
+  // Learning Objectives
+  learningObjectives          String[]
+  requiredSkills              String[]
+  
+  // Performance Metrics
+  successRate                 Float?
+  averageCompletionTime       Float?
+  
+  // Apprenticeship Tracking
+  apprenticeships             Apprenticeship[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Apprenticeship Model
+model Apprenticeship {
+  id                          String              @id @default(cuid())
+  
+  // Student and Program Association
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  programId                   String
+  program                     ApprenticeshipProgram @relation(fields: [programId], references: [id])
+  
+  // Apprenticeship Details
+  startDate                   DateTime
+  expectedEndDate             DateTime
+  actualEndDate               DateTime?
+  
+  status                      ApprenticeshipStatus @default(PENDING)
+  
+  // Performance Tracking
+  progressPercentage          Float               @default(0)
+  
+  // Mentor Information
+  mentorName                  String
+  mentorEmail                 String
+  mentorRating                MentorRating?
+  
+  // Skill Development
+  skillAssessments            ApprenticeshipSkillAssessment[]
+  
+  // Project and Deliverables
+  projects                    ApprenticeshipProject[]
+  
+  // AI-Enhanced Insights
+  performanceInsights         Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Apprenticeship Skill Assessment Model
+model ApprenticeshipSkillAssessment {
+  id                          String              @id @default(cuid())
+  
+  // Apprenticeship Context
+  apprenticeshipId            String
+  apprenticeship              Apprenticeship      @relation(fields: [apprenticeshipId], references: [id])
+  
+  // Skill Details
+  skillName                   String
+  category                    String
+  
+  // Proficiency Assessment
+  initialProficiencyLevel     SkillProficiencyLevel
+  currentProficiencyLevel     SkillProficiencyLevel
+  
+  // Performance Metrics
+  improvementRate             Float?
+  timeToMastery               Int?                // days
+  
+  // AI-Generated Recommendations
+  learningRecommendations     String[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Apprenticeship Project Model
+model ApprenticeshipProject {
+  id                          String              @id @default(cuid())
+  
+  // Apprenticeship Context
+  apprenticeshipId            String
+  apprenticeship              Apprenticeship      @relation(fields: [apprenticeshipId], references: [id])
+  
+  // Project Details
+  title                       String
+  description                 String?
+  
+  // Project Lifecycle
+  startDate                   DateTime
+  expectedEndDate             DateTime
+  actualEndDate               DateTime?
+  
+  // Performance Metrics
+  status                      String              @default("IN_PROGRESS")
+  completionPercentage        Float               @default(0)
+  
+  // Evaluation
+  mentorEvaluation            String?
+  performanceScore            Float?
+  
+  // Skills Demonstrated
+  skillsApplied               String[]
+  
+  // AI-Enhanced Insights
+  projectInsights             Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Scholarship and Equity Program Enums
+enum ScholarshipType {
+  MERIT_BASED
+  NEED_BASED
+  DIVERSITY_INCLUSION
+  STEM_SUPPORT
+  RESEARCH_GRANT
+  ENTREPRENEURIAL_SUPPORT
+  COMMUNITY_SERVICE
+}
+
+enum EligibilityCriteria {
+  ACADEMIC_PERFORMANCE
+  FINANCIAL_NEED
+  UNDERREPRESENTED_BACKGROUND
+  COMMUNITY_INVOLVEMENT
+  RESEARCH_POTENTIAL
+  INNOVATION_POTENTIAL
+  LEADERSHIP_QUALITIES
+}
+
+enum ScholarshipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  EXPIRED
+}
+
+enum FundingSource {
+  INSTITUTIONAL
+  CORPORATE_SPONSOR
+  GOVERNMENT_GRANT
+  PRIVATE_DONOR
+  ALUMNI_CONTRIBUTION
+  RESEARCH_FOUNDATION
+}
+
+// Scholarship Program Model
+model ScholarshipProgram {
+  id                          String              @id @default(cuid())
+  
+  // Program Identification
+  title                       String
+  code                        String              @unique
+  description                 String?
+  
+  // Scholarship Characteristics
+  type                        ScholarshipType
+  fundingSource               FundingSource
+  
+  // Financial Details
+  totalFundingAmount          Float
+  individualAwardAmount       Float
+  
+  // Eligibility and Criteria
+  eligibilityCriteria         EligibilityCriteria[]
+  minimumGPA                  Float?
+  requiredDocuments           String[]
+  
+  // Program Lifecycle
+  applicationStartDate        DateTime
+  applicationEndDate          DateTime
+  fundingPeriodStart          DateTime
+  fundingPeriodEnd            DateTime
+  
+  // Performance and Impact
+  totalAwardsAvailable        Int
+  awardedScholarships         Scholarship[]
+  
+  // Compliance and Governance
+  termsAndConditions          String?
+  reportingRequirements       String[]
+  
+  // AI and Analytics
+  aiGeneratedInsights         Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Scholarship Model
+model Scholarship {
+  id                          String              @id @default(cuid())
+  
+  // Student and Program Association
+  studentId                   String
+  student                     Student             @relation(fields: [studentId], references: [id])
+  
+  programId                   String
+  program                     ScholarshipProgram  @relation(fields: [programId], references: [id])
+  
+  // Scholarship Details
+  status                      ScholarshipStatus   @default(PENDING)
+  
+  // Financial Tracking
+  awardAmount                 Float
+  disbursementSchedule        Json?
+  
+  // Performance Requirements
+  performanceAgreement        String?
+  performanceReviews          ScholarshipPerformanceReview[]
+  
+  // Documentation and Compliance
+  applicationDocuments        ScholarshipDocument[]
+  
+  // Reporting and Impact
+  progressReports             ScholarshipProgressReport[]
+  
+  // AI-Enhanced Tracking
+  performanceInsights         Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Scholarship Performance Review Model
+model ScholarshipPerformanceReview {
+  id                          String              @id @default(cuid())
+  
+  // Scholarship Context
+  scholarshipId               String
+  scholarship                 Scholarship         @relation(fields: [scholarshipId], references: [id])
+  
+  // Review Details
+  reviewDate                  DateTime
+  reviewPeriod                String
+  
+  // Performance Metrics
+  academicPerformance         Float?
+  researchProgress            Float?
+  communityInvolvement        Float?
+  
+  // Qualitative Feedback
+  mentorFeedback              String?
+  recommendedActions          String[]
+  
+  // AI-Generated Insights
+  performanceCategory         String?
+  developmentRecommendations  String[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Scholarship Document Model
+model ScholarshipDocument {
+  id                          String              @id @default(cuid())
+  
+  // Scholarship Context
+  scholarshipId               String
+  scholarship                 Scholarship         @relation(fields: [scholarshipId], references: [id])
+  
+  // Document Details
+  documentType                String
+  documentName                String
+  documentPath                String
+  
+  // Verification and Compliance
+  verificationStatus          String              @default("PENDING")
+  uploadDate                  DateTime            @default(now())
+  
+  // AI-Enhanced Document Processing
+  documentInsights            Json?
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+}
+
+// Scholarship Progress Report Model
+model ScholarshipProgressReport {
+  id                          String              @id @default(cuid())
+  
+  // Scholarship Context
+  scholarshipId               String
+  scholarship                 Scholarship         @relation(fields: [scholarshipId], references: [id])
+  
+  // Report Details
+  reportDate                  DateTime
+  reportPeriod                String
+  
+  // Progress Metrics
+  academicProgress            Float?
+  researchMilestones          String[]
+  communityContributions      String[]
+  
+  // Future Planning
+  nextMilestones              String[]
+  supportNeeds                String[]
+  
+  // AI-Generated Insights
+  progressCategory            String?
+  developmentSuggestions      String[]
+  
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
 }
