@@ -340,6 +340,8 @@ model User {
   // Back-references
   researchers                 Researcher[]
   divisions                   Division[]
+  userConsentProfile          UserConsentProfile?
+  notifications               Notification[]
 }
 
 // Student Model
@@ -2267,4 +2269,89 @@ model EligibilityCriteria {
   scholarshipProgram  ScholarshipProgram?        @relation(fields: [scholarshipProgramId], references: [id])
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
+}
+
+// User Consent Profile Model
+model UserConsentProfile {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id])
+  consentType         String
+  consentStatus       Boolean   @default(false)
+  consentDate         DateTime  @default(now())
+  expirationDate      DateTime?
+  processingPurpose   String
+  lastUpdated         DateTime  @updatedAt
+  notificationPreferences NotificationPreference[]
+}
+
+model NotificationPreference {
+  id                  String    @id @default(cuid())
+  userConsentProfileId String
+  userConsentProfile  UserConsentProfile @relation(fields: [userConsentProfileId], references: [id])
+  category            String
+  preferenceType      String
+  isEnabled           Boolean   @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Notification {
+  id                  String    @id @default(cuid())
+  recipientId         String
+  recipient           User      @relation(fields: [recipientId], references: [id])
+  category            String
+  processingPurpose   String
+  content             String
+  isRead              Boolean   @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Consent Status Enum
+enum ConsentStatus {
+  PENDING
+  GRANTED
+  REVOKED
+  EXPIRED
+}
+
+// Consent Purpose Enum
+enum ConsentPurpose {
+  COMMUNICATION
+  PERSONALIZATION
+  ANALYTICS
+  MARKETING
+  RESEARCH
+  PERFORMANCE_TRACKING
+}
+
+// Applicable Regulation Enum
+enum ApplicableRegulation {
+  GDPR
+  CCPA
+  HIPAA
+  FERPA
+  COPPA
+}
+
+// Add this after existing enums
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+// Add this model to the end of the file
+model UserAuthentication {
+  id             String   @id @default(cuid())
+  username       String   @unique
+  email          String   @unique
+  passwordHash   String
+  role           UserRole
+  lastLogin      DateTime?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

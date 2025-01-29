@@ -18,7 +18,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        layout: {
+          socialButtonsPlacement: 'bottom',
+          logoPlacement: 'inside',
+          logoImageUrl: '/logo.png',
+        },
+        variables: {
+          colorPrimary: '#0070f3',
+        },
+      }}
+      signIn={{
+        path: '/sign-in',
+        routing: 'path',
+      }}
+    >
       <html lang="en">
         <body className={inter.className}>
           {children} <ToastContainer position="bottom-right" theme="dark" />

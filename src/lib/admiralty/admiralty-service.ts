@@ -2,7 +2,8 @@ import { AdmiraltyManager } from './admiralty-manager';
 import { 
   StrategicInitiativeDetails, 
   EthicalStandardDetails, 
-  CommunityOutreachProgramDetails 
+  CommunityOutreachProgramDetails,
+  DivisionType 
 } from './types';
 
 export class AdmiraltyService {
@@ -76,13 +77,15 @@ export class AdmiraltyService {
   async defineEthicalStandard(
     code: string,
     name: string,
-    description: string
+    description: string,
+    complianceLevel?: number
   ): Promise<EthicalStandardDetails> {
     return this.admiraltyManager.createEthicalStandard({
       code,
       name,
       description,
-      implementationDate: new Date()
+      implementationDate: new Date(),
+      complianceLevel: complianceLevel || 0
     });
   }
 

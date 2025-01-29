@@ -1,58 +1,77 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { OpenAI } from 'openai';
 import { z } from 'zod';
 
+const prisma = new PrismaClient().$extends({
+  model: {
+    userConsentProfile: {
+      async create(data: Prisma.UserConsentProfileCreateArgs) {
+        return prisma.userConsentProfile.create(data);
+      },
+      async findUnique(args: Prisma.UserConsentProfileFindUniqueArgs) {
+        return prisma.userConsentProfile.findUnique(args);
+      },
+      async update(args: Prisma.UserConsentProfileUpdateArgs) {
+        return prisma.userConsentProfile.update(args);
+      },
+      async delete(args: Prisma.UserConsentProfileDeleteArgs) {
+        return prisma.userConsentProfile.delete(args);
+      }
+    },
+    notification: {
+      async create(data: Prisma.NotificationCreateArgs) {
+        return prisma.notification.create(data);
+      },
+      async findMany(args: Prisma.NotificationFindManyArgs) {
+        return prisma.notification.findMany(args);
+      },
+      async update(args: Prisma.NotificationUpdateArgs) {
+        return prisma.notification.update(args);
+      },
+      async deleteMany(args: Prisma.NotificationDeleteManyArgs) {
+        return prisma.notification.deleteMany(args);
+      }
+    }
+  }
+});
+
 export class NotificationComplianceService {
-  private prisma: PrismaClient;
+  private prisma: ReturnType<typeof new PrismaClient().$extends>;
   private openai: OpenAI;
 
-  constructor() {
-    this.prisma = new PrismaClient();
+  constructor(pc?: ReturnType<typeof new PrismaClient().$extends>) {
+    this.prisma = pc || prisma;
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
       dangerouslyAllowBrowser: false
     });
   }
 
-  // Consent Management Schema
-  private ConsentSchema = z.object({
-    userId: z.string(),
-    globalConsentStatus: z.enum([
-      'PENDING', 'GRANTED', 'REVOKED', 'EXPIRED'
-    ]),
-    applicableRegulations: z.array(z.enum([
-      'GDPR', 'CCPA', 'HIPAA', 'FERPA', 'COPPA'
-    ])),
-    purposeConsents: z.array(z.object({
-      purpose: z.enum([
-        'COMMUNICATION', 'PERSONALIZATION', 'ANALYTICS', 
-        'MARKETING', 'RESEARCH', 'PERFORMANCE_TRACKING'
-      ]),
-      status: z.enum([
-        'PENDING', 'GRANTED', 'REVOKED', 'EXPIRED'
-      ]),
-      allowPersonalization: z.boolean().optional(),
-      allowThirdPartySharing: z.boolean().optional()
-    }))
-  });
-
   // Initialize User Consent Profile
   async initializeUserConsentProfile(
-    userData: z.infer<typeof this.ConsentSchema>
+    userData: {
+      userId: string;
+      globalConsentStatus?: 'PENDING' | 'GRANTED' | 'REVOKED' | 'EXPIRED';
+      applicableRegulations?: ('GDPR' | 'CCPA' | 'HIPAA' | 'FERPA' | 'COPPA')[];
+      purposeConsents?: {
+        purpose: 'COMMUNICATION' | 'PERSONALIZATION' | 'ANALYTICS' | 'MARKETING' | 'RESEARCH' | 'PERFORMANCE_TRACKING';
+        status?: 'PENDING' | 'GRANTED' | 'REVOKED' | 'EXPIRED';
+        allowPersonalization?: boolean;
+        allowThirdPartySharing?: boolean;
+      }[];
+    }
   ) {
-    const validatedData = this.ConsentSchema.parse(userData);
-
     // AI-Enhanced Consent Recommendation
     const consentRecommendationPrompt = `
       Analyze user consent profile:
       
       User Context:
-      - Applicable Regulations: ${validatedData.applicableRegulations.join(', ')}
+      - Applicable Regulations: ${userData.applicableRegulations?.join(', ') || ''}
       
       Purpose Consents:
-      ${validatedData.purposeConsents.map(
+      ${userData.purposeConsents?.map(
         pc => `- ${pc.purpose}: ${pc.status}`
-      ).join('\n')}
+      ).join('\n') || ''}
       
       Generate:
       - Recommended consent strategy
@@ -82,24 +101,24 @@ export class NotificationComplianceService {
     );
 
     // Create Consent Profile
-    return await this.prisma.userConsentProfile.create({
+    return this.prisma.userConsentProfile.create({
       data: {
-        userId: validatedData.userId,
-        globalConsentStatus: validatedData.globalConsentStatus,
-        applicableRegulations: validatedData.applicableRegulations,
+        userId: userData.userId,
+        globalConsentStatus: userData.globalConsentStatus || 'PENDING',
+        applicableRegulations: userData.applicableRegulations || [],
         purposeConsents: {
-          create: validatedData.purposeConsents.map(pc => ({
-            purpose: pc.purpose,
-            status: pc.status,
-            allowPersonalization: pc.allowPersonalization,
-            allowThirdPartySharing: pc.allowThirdPartySharing,
+          create: userData.purposeConsents?.map(consent => ({
+            purpose: consent.purpose,
+            status: consent.status || 'PENDING',
+            allowPersonalization: consent.allowPersonalization || false,
+            allowThirdPartySharing: consent.allowThirdPartySharing || false,
             consentVersion: consentInsights.recommendedConsentVersion
-          }))
+          })) || []
         },
         consentChangeLog: {
           create: {
             changeType: 'INITIAL_SETUP',
-            changedPurposes: validatedData.purposeConsents.map(pc => pc.purpose),
+            changedPurposes: userData.purposeConsents?.map(pc => pc.purpose) || [],
             changeReason: 'User consent profile initialization'
           }
         },
@@ -204,6 +223,25 @@ export class NotificationComplianceService {
     });
 
     return updatedProfile;
+  }
+
+  // Create Notification
+  async createNotification(
+    data: {
+      recipientId: string;
+      category: string;
+      processingPurpose: string;
+      content: string;
+    }
+  ) {
+    return this.prisma.notification.create({
+      data: {
+        recipientId: data.recipientId,
+        category: data.category,
+        processingPurpose: data.processingPurpose,
+        content: data.content
+      }
+    });
   }
 
   // Verify Notification Compliance
@@ -348,3 +386,5 @@ export class NotificationComplianceService {
     ]);
   }
 }
+
+export default NotificationComplianceService;

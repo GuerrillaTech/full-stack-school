@@ -1,5 +1,7 @@
 import { AdmiraltyRank, DivisionType } from '@prisma/client';
 
+export { AdmiraltyRank, DivisionType };
+
 export interface AdmiraltyMemberProfile {
   id: string;
   name: string;
