@@ -269,4 +269,245 @@ export class LearningInterventionService {
 
     return mappings[riskType] || InterventionType.ACADEMIC_SUPPORT;
   }
+
+  // Measure Intervention Effectiveness
+  async measureInterventionEffectiveness(
+    interventionId: string
+  ): Promise<{
+    effectivenessScore: number,
+    impactMetrics: Record<string, number>,
+    recommendedAdjustments: string[]
+  }> {
+    try {
+      // Retrieve intervention details
+      const intervention = await this.prisma.learningIntervention.findUnique({
+        where: { id: interventionId },
+        include: { 
+          student: true,
+          performanceMetrics: true 
+        }
+      });
+
+      if (!intervention) {
+        throw new Error('Intervention not found');
+      }
+
+      // Calculate effectiveness based on performance metrics
+      const performanceMetrics = intervention.performanceMetrics;
+      const effectivenessScore = this.calculateEffectivenessScore(performanceMetrics);
+
+      // Generate impact metrics
+      const impactMetrics = this.generateImpactMetrics(performanceMetrics);
+
+      // Recommend intervention adjustments
+      const recommendedAdjustments = this.generateInterventionAdjustments(
+        effectivenessScore, 
+        impactMetrics
+      );
+
+      return {
+        effectivenessScore,
+        impactMetrics,
+        recommendedAdjustments
+      };
+    } catch (error) {
+      console.error('Intervention Effectiveness Measurement Error:', error);
+      throw error;
+    }
+  }
+
+  // Calculate Intervention Effectiveness Score
+  private calculateEffectivenessScore(
+    performanceMetrics: any[]
+  ): number {
+    const metricScores = performanceMetrics.map(metric => {
+      const improvement = metric.afterIntervention - metric.beforeIntervention;
+      const improvementRatio = improvement / metric.beforeIntervention;
+      return Math.min(Math.max(improvementRatio, 0), 1);
+    });
+
+    return metricScores.reduce((a, b) => a + b, 0) / metricScores.length;
+  }
+
+  // Generate Impact Metrics
+  private generateImpactMetrics(
+    performanceMetrics: any[]
+  ): Record<string, number> {
+    return performanceMetrics.reduce((metrics, metric) => {
+      const improvement = metric.afterIntervention - metric.beforeIntervention;
+      const improvementPercentage = (improvement / metric.beforeIntervention) * 100;
+      
+      metrics[metric.metricName] = {
+        improvement: improvementPercentage,
+        absoluteChange: improvement
+      };
+
+      return metrics;
+    }, {});
+  }
+
+  // Generate Intervention Adjustments
+  private generateInterventionAdjustments(
+    effectivenessScore: number,
+    impactMetrics: Record<string, number>
+  ): string[] {
+    const adjustments = [];
+
+    // Low effectiveness recommendations
+    if (effectivenessScore < 0.3) {
+      adjustments.push(
+        'Comprehensive intervention redesign',
+        'Personalized learning approach',
+        'Additional support resources'
+      );
+    }
+
+    // Moderate effectiveness recommendations
+    if (effectivenessScore >= 0.3 && effectivenessScore < 0.6) {
+      adjustments.push(
+        'Targeted intervention refinement',
+        'Supplementary learning materials',
+        'Enhanced monitoring'
+      );
+    }
+
+    // Metric-specific adjustments
+    Object.entries(impactMetrics).forEach(([metric, data]) => {
+      if (data.improvement < 10) {
+        adjustments.push(`Focus on improving ${metric} performance`);
+      }
+    });
+
+    return adjustments;
+  }
+
+  // Adaptive Intervention Scaling Mechanism
+  async scaleInterventionSupport(
+    studentId: string,
+    currentInterventionLevel: number
+  ): Promise<{
+    recommendedInterventionLevel: number,
+    scalingStrategy: string[],
+    supportIntensity: number
+  }> {
+    try {
+      // Retrieve student's performance and intervention history
+      const studentProfile = await this.prisma.student.findUnique({
+        where: { id: studentId },
+        include: {
+          performanceAnalytics: true,
+          learningInterventions: {
+            orderBy: { createdAt: 'desc' },
+            take: 5
+          }
+        }
+      });
+
+      if (!studentProfile) {
+        throw new Error('Student profile not found');
+      }
+
+      // Analyze performance trends and intervention history
+      const performanceAnalytics = studentProfile.performanceAnalytics;
+      const interventionHistory = studentProfile.learningInterventions;
+
+      // Determine recommended intervention level
+      const recommendedInterventionLevel = this.calculateOptimalInterventionLevel(
+        performanceAnalytics,
+        interventionHistory,
+        currentInterventionLevel
+      );
+
+      // Generate scaling strategy
+      const scalingStrategy = this.generateInterventionScalingStrategy(
+        recommendedInterventionLevel
+      );
+
+      // Calculate support intensity
+      const supportIntensity = this.calculateSupportIntensity(
+        recommendedInterventionLevel
+      );
+
+      return {
+        recommendedInterventionLevel,
+        scalingStrategy,
+        supportIntensity
+      };
+    } catch (error) {
+      console.error('Intervention Scaling Error:', error);
+      throw error;
+    }
+  }
+
+  // Calculate Optimal Intervention Level
+  private calculateOptimalInterventionLevel(
+    performanceAnalytics: any,
+    interventionHistory: any[],
+    currentLevel: number
+  ): number {
+    // Analyze performance trend
+    const performanceTrend = performanceAnalytics.performanceTrend;
+    const potentialIndex = performanceAnalytics.potentialIndex;
+
+    // Analyze intervention effectiveness
+    const recentInterventionEffectiveness = interventionHistory
+      .slice(0, 3)
+      .reduce((avg, intervention) => avg + intervention.effectivenessScore, 0) / 
+      Math.min(interventionHistory.length, 3);
+
+    // Determine intervention level adjustment
+    switch (true) {
+      case performanceTrend === 'DECLINING' && potentialIndex < 0.4:
+        return Math.min(currentLevel + 2, 5);
+      case performanceTrend === 'STABLE' && recentInterventionEffectiveness < 0.5:
+        return Math.min(currentLevel + 1, 5);
+      case performanceTrend === 'IMPROVING' && potentialIndex > 0.7:
+        return Math.max(currentLevel - 1, 1);
+      default:
+        return currentLevel;
+    }
+  }
+
+  // Generate Intervention Scaling Strategy
+  private generateInterventionScalingStrategy(
+    interventionLevel: number
+  ): string[] {
+    const strategies = {
+      1: [
+        'Minimal support resources',
+        'Self-guided learning materials',
+        'Periodic progress check-ins'
+      ],
+      2: [
+        'Supplementary online resources',
+        'Group study recommendations',
+        'Quarterly performance review'
+      ],
+      3: [
+        'Targeted tutoring sessions',
+        'Personalized learning plan',
+        'Monthly progress monitoring'
+      ],
+      4: [
+        'Intensive one-on-one tutoring',
+        'Comprehensive support program',
+        'Bi-weekly performance assessment'
+      ],
+      5: [
+        'Holistic academic intervention',
+        'Dedicated academic coach',
+        'Weekly comprehensive support'
+      ]
+    };
+
+    return strategies[interventionLevel] || strategies[3];
+  }
+
+  // Calculate Support Intensity
+  private calculateSupportIntensity(
+    interventionLevel: number
+  ): number {
+    // Linear mapping of intervention level to support intensity
+    return interventionLevel / 5;
+  }
 }

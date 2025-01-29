@@ -1,0 +1,315 @@
+// Comprehensive Enum Definitions
+
+// User and Identity Enums
+enum UserSex {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// Assessment and Learning Enums
+enum AssessmentType {
+  DIAGNOSTIC
+  FORMATIVE
+  SUMMATIVE
+  PERFORMANCE_BASED
+  ADAPTIVE
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum LearningDomain {
+  COGNITIVE
+  AFFECTIVE
+  PSYCHOMOTOR
+  METACOGNITIVE
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING_WRITING
+  MULTIMODAL
+}
+
+enum LearningPathType {
+  ACADEMIC_ENRICHMENT
+  SKILL_DEVELOPMENT
+  CAREER_PREPARATION
+  PERSONAL_GROWTH
+}
+
+enum LearningProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+  NEEDS_IMPROVEMENT
+}
+
+enum LearningGoalType {
+  ACADEMIC_IMPROVEMENT
+  SKILL_DEVELOPMENT
+  CAREER_PREPARATION
+  PERSONAL_GROWTH
+}
+
+// Risk and Intervention Enums
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum RiskCategory {
+  ACADEMIC
+  ATTENDANCE
+  BEHAVIORAL
+  SOCIAL_EMOTIONAL
+  FINANCIAL
+}
+
+enum InterventionType {
+  ACADEMIC_SUPPORT
+  EMOTIONAL_SUPPORT
+  SKILL_DEVELOPMENT
+  CAREER_GUIDANCE
+  MENTAL_HEALTH
+}
+
+enum InterventionPlanStatus {
+  INITIATED
+  IN_PROGRESS
+  SUCCESSFUL
+  NEEDS_REVIEW
+  DISCONTINUED
+}
+
+enum PredictionConfidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Curriculum and Course Enums
+enum CurriculumType {
+  STANDARD
+  ADVANCED
+  SPECIALIZED
+  INTERDISCIPLINARY
+}
+
+enum CurriculumStatus {
+  DRAFT
+  APPROVED
+  ACTIVE
+  ARCHIVED
+}
+
+enum CourseDeliveryMode {
+  IN_PERSON
+  ONLINE
+  HYBRID
+  SELF_PACED
+}
+
+// Apprenticeship and Skill Enums
+enum ApprenticeshipCategory {
+  TECHNICAL
+  PROFESSIONAL
+  RESEARCH
+  CREATIVE
+}
+
+enum ApprenticeshipStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  TERMINATED
+}
+
+enum SkillProficiencyLevel {
+  NOVICE
+  BEGINNER
+  COMPETENT
+  PROFICIENT
+  EXPERT
+}
+
+// Scholarship and Funding Enums
+enum ScholarshipType {
+  MERIT_BASED
+  NEED_BASED
+  DIVERSITY
+  RESEARCH
+  INTERNATIONAL
+}
+
+enum ScholarshipStatus {
+  PENDING
+  AWARDED
+  ACTIVE
+  COMPLETED
+  REVOKED
+}
+
+enum FundingSource {
+  INSTITUTIONAL
+  GOVERNMENT
+  PRIVATE
+  CORPORATE
+  PHILANTHROPIC
+}
+
+// Collaboration and Partnership Enums
+enum PartnershipType {
+  ACADEMIC
+  INDUSTRY
+  RESEARCH
+  COMMUNITY
+  INTERNATIONAL
+}
+
+enum PartnershipStatus {
+  PROSPECTIVE
+  NEGOTIATING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum CollaborationType {
+  RESEARCH
+  EDUCATIONAL
+  TECHNOLOGICAL
+  CULTURAL
+  STRATEGIC
+}
+
+enum CollaborationStatus {
+  PROSPECTIVE
+  PLANNING
+  IN_PROGRESS
+  COMPLETED
+  DISCONTINUED
+}
+
+// Compliance and Governance Enums
+enum ComplianceLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// Research and Innovation Enums
+enum ResearchDomain {
+  STEM
+  SOCIAL_SCIENCES
+  HUMANITIES
+  INTERDISCIPLINARY
+  APPLIED_RESEARCH
+}
+
+enum ResearchStatus {
+  PROPOSAL
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  PUBLISHED
+}
+
+// Additional Enums
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum CognitiveLoadLevel {
+  LOW
+  MODERATE
+  HIGH
+  OVERWHELMING
+}
+
+enum LearningPathComplexity {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum RecommendationOutcome {
+  COMPLETED
+  PARTIAL
+  ABANDONED
+}
+
+enum InclusionMetricType {
+  ACADEMIC_SUPPORT
+  RESOURCE_ACCESS
+  MENTORSHIP
+  COMMUNITY_ENGAGEMENT
+}
+
+enum DiversityCategory {
+  RACE
+  GENDER
+  SOCIOECONOMIC
+  DISABILITY
+  FIRST_GENERATION
+}
+
+enum InterventionOutcome {
+  SUCCESSFUL
+  PARTIALLY_SUCCESSFUL
+  UNSUCCESSFUL
+}
+
+enum SupportModelType {
+  PREDICTIVE
+  PRESCRIPTIVE
+  DIAGNOSTIC
+  ADAPTIVE
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  PAUSED
+}
+
+enum PartnerType {
+  ACADEMIC_INSTITUTION
+  CORPORATE
+  NON_PROFIT
+  GOVERNMENT
+  INTERNATIONAL
+}
+
+enum LearningOutcomeCategory {
+  KNOWLEDGE
+  SKILLS
+  COMPETENCIES
+  ATTITUDES
+  PROFESSIONAL_DEVELOPMENT
+}
+
+enum MentorRating {
+  EXCELLENT
+  GOOD
+  SATISFACTORY
+  NEEDS_IMPROVEMENT
+}
