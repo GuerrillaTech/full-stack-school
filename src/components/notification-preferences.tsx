@@ -5,7 +5,8 @@ import {
   Card, 
   CardContent, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 import { 
   Switch 
@@ -30,6 +31,9 @@ import { NotificationService } from '@/lib/notification-service';
 import { 
   SyncPlatform 
 } from '@/lib/notification-sync-service';
+import { 
+  NotificationComplianceService 
+} from '@/lib/notification-compliance-service';
 
 export function NotificationPreferences() {
   const [preferences, setPreferences] = useState({
@@ -60,7 +64,28 @@ export function NotificationPreferences() {
     maxNotificationsToSync: 100
   });
 
+  const [compliancePreferences, setCompliancePreferences] = useState({
+    globalConsentStatus: 'PENDING',
+    applicableRegulations: ['GDPR', 'CCPA'],
+    purposeConsents: [
+      {
+        purpose: 'COMMUNICATION',
+        status: 'PENDING',
+        allowPersonalization: false,
+        allowThirdPartySharing: false
+      },
+      {
+        purpose: 'PERSONALIZATION',
+        status: 'PENDING',
+        allowPersonalization: false,
+        allowThirdPartySharing: false
+      }
+    ],
+    dataRetentionPeriod: 365
+  });
+
   const notificationService = new NotificationService();
+  const notificationComplianceService = new NotificationComplianceService();
 
   useEffect(() => {
     // Fetch current user's notification preferences
@@ -101,6 +126,30 @@ export function NotificationPreferences() {
       toast.success('Sync preferences updated successfully');
     } catch (error) {
       toast.error('Failed to update sync preferences');
+    }
+  };
+
+  const handleCompliancePreferencesUpdate = async () => {
+    try {
+      await notificationComplianceService.updateConsentPreferences(
+        'current-user-id', 
+        {
+          globalConsentStatus: compliancePreferences.globalConsentStatus,
+          purposeConsents: compliancePreferences.purposeConsents
+        }
+      );
+      toast.success('Compliance preferences updated successfully');
+    } catch (error) {
+      toast.error('Failed to update compliance preferences');
+    }
+  };
+
+  const handleScheduleDataDeletion = async () => {
+    try {
+      await notificationComplianceService.scheduleDataDeletion('current-user-id');
+      toast.info('Data deletion scheduled. Your data will be permanently removed.');
+    } catch (error) {
+      toast.error('Failed to schedule data deletion');
     }
   };
 
@@ -348,11 +397,172 @@ export function NotificationPreferences() {
         </CardContent>
       </Card>
 
+      {/* Compliance and Privacy Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Privacy and Compliance</CardTitle>
+          <CardDescription>
+            Manage your data privacy, consent, and notification preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Global Consent Status</Label>
+            <Select
+              value={compliancePreferences.globalConsentStatus}
+              onValueChange={(value) => 
+                setCompliancePreferences(prev => ({
+                  ...prev,
+                  globalConsentStatus: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Consent Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="GRANTED">Granted</SelectItem>
+                <SelectItem value="REVOKED">Revoked</SelectItem>
+                <SelectItem value="EXPIRED">Expired</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Applicable Regulations</Label>
+            <div className="flex space-x-2 mt-2">
+              {['GDPR', 'CCPA', 'HIPAA', 'FERPA', 'COPPA'].map(regulation => (
+                <Button
+                  key={regulation}
+                  variant={
+                    compliancePreferences.applicableRegulations.includes(regulation) 
+                      ? 'default' 
+                      : 'outline'
+                  }
+                  onClick={() => {
+                    setCompliancePreferences(prev => ({
+                      ...prev,
+                      applicableRegulations: prev.applicableRegulations.includes(regulation)
+                        ? prev.applicableRegulations.filter(r => r !== regulation)
+                        : [...prev.applicableRegulations, regulation]
+                    }));
+                  }}
+                >
+                  {regulation}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Purpose-Specific Consents</Label>
+            {compliancePreferences.purposeConsents.map((consent, index) => (
+              <div key={consent.purpose} className="mt-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>{consent.purpose} Consent</Label>
+                  <Select
+                    value={consent.status}
+                    onValueChange={(value) => {
+                      const newConsents = [...compliancePreferences.purposeConsents];
+                      newConsents[index] = { 
+                        ...newConsents[index], 
+                        status: value 
+                      };
+                      setCompliancePreferences(prev => ({
+                        ...prev,
+                        purposeConsents: newConsents
+                      }));
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Consent Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="GRANTED">Granted</SelectItem>
+                      <SelectItem value="REVOKED">Revoked</SelectItem>
+                      <SelectItem value="EXPIRED">Expired</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label>Allow Personalization</Label>
+                  <Switch
+                    checked={consent.allowPersonalization}
+                    onCheckedChange={(value) => {
+                      const newConsents = [...compliancePreferences.purposeConsents];
+                      newConsents[index] = { 
+                        ...newConsents[index], 
+                        allowPersonalization: value 
+                      };
+                      setCompliancePreferences(prev => ({
+                        ...prev,
+                        purposeConsents: newConsents
+                      }));
+                    }}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label>Allow Third-Party Sharing</Label>
+                  <Switch
+                    checked={consent.allowThirdPartySharing}
+                    onCheckedChange={(value) => {
+                      const newConsents = [...compliancePreferences.purposeConsents];
+                      newConsents[index] = { 
+                        ...newConsents[index], 
+                        allowThirdPartySharing: value 
+                      };
+                      setCompliancePreferences(prev => ({
+                        ...prev,
+                        purposeConsents: newConsents
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label>Data Retention Period (Days)</Label>
+            <Input
+              type="number"
+              value={compliancePreferences.dataRetentionPeriod}
+              onChange={(e) => 
+                setCompliancePreferences(prev => ({
+                  ...prev,
+                  dataRetentionPeriod: parseInt(e.target.value)
+                }))
+              }
+              min={30}
+              max={365 * 3}
+              className="w-24"
+            />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Button 
+              variant="destructive"
+              onClick={handleScheduleDataDeletion}
+            >
+              Schedule Data Deletion
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Permanently remove all your personal data from our systems
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Save Preferences */}
       <div className="flex justify-end">
         <Button onClick={() => {
           savePreferences();
           handleSyncPreferencesUpdate();
+          handleCompliancePreferencesUpdate();
         }}>
           Save All Preferences
         </Button>
